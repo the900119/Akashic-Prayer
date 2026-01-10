@@ -2,7 +2,21 @@
 import { GoogleGenAI } from "@google/genai";
 
 export async function generateSpiritualInsight(name: string): Promise<string> {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // 安全地檢查 API Key
+  let apiKey = "";
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      apiKey = process.env.API_KEY;
+    }
+  } catch (e) {
+    console.warn("API Key not found in environment.");
+  }
+
+  if (!apiKey) {
+    return "請在系統中配置 API Key 以開啟靈魂導引。目前請先專注於當下的呼吸與光。";
+  }
+
+  const ai = new GoogleGenAI({ apiKey: apiKey });
   const model = "gemini-3-flash-preview";
   
   const prompt = `
