@@ -1,182 +1,227 @@
 
-import React, { useState, useCallback } from 'react';
-import ReactDOM from 'react-dom/client';
-import { GoogleGenAI } from "@google/genai";
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阿卡西紀錄：冥想與祈禱文</title>
+    <!-- 1. 載入必要的函式庫 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@19/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@19/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Serif TC', serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+        /* A4 列印設定 */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+            .page { 
+                margin: 0 !important; 
+                border: none !important; 
+                box-shadow: none !important; 
+                width: 210mm; 
+                height: 297mm;
+                page-break-after: always;
+                display: flex !important;
+            }
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+        /* 羊皮紙美學 */
+        .parchment {
+            background-color: #fffcf5;
+            background-image: radial-gradient(#fffcf5 70%, #f7f1e3 100%);
+            border: 8px double #d4af37;
+            position: relative;
+        }
+        .parchment::before {
+            content: "";
+            position: absolute;
+            inset: 4px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            pointer-events: none;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0"
+  }
+}
+</script>
+</head>
+<body>
+    <div id="root"></div>
 
-// --- 常數定義 ---
-const COLORS = {
-  gold: '#d4af37',
-  deepGold: '#8a6d3b',
-  parchment: '#fffcf5',
-};
+    <!-- 2. React 程式碼邏輯 -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-// --- 組件 1: A4 頁面外殼 ---
-const A4Page: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
-  <div className={`page w-[210mm] h-[297mm] bg-white shadow-2xl mx-auto my-8 p-[15mm] flex items-center justify-center box-border page-break relative overflow-hidden ${className}`}>
-    <div 
-      className="w-full h-full p-10 flex flex-col justify-between relative"
-      style={{ border: `8px double ${COLORS.gold}`, backgroundColor: COLORS.parchment }}
-    >
-      <div className="absolute inset-2 border border-amber-200/40 pointer-events-none"></div>
-      {children}
-    </div>
-  </div>
-);
+        // --- 常數定義 ---
+        const COLORS = { gold: '#d4af37', deepGold: '#8a6d3b' };
 
-// --- 組件 2: 冥想頁面 ---
-const MeditationPage: React.FC = () => (
-  <A4Page>
-    <div className="text-center">
-      <div style={{ color: COLORS.gold }} className="text-xl mb-2">✧ ✦ ✧</div>
-      <h1 className="font-bold tracking-[8px] text-3xl mb-1 text-amber-900">開場冥想：聖光支柱</h1>
-      <p className="text-amber-700/50 italic text-xs tracking-widest uppercase">Opening Meditation: Pillar of Holy Light</p>
-    </div>
+        // --- 子組件：A4 頁面外殼 ---
+        const A4Page = ({ children }) => (
+            <div className="page w-[210mm] h-[297mm] bg-white shadow-2xl mx-auto my-10 p-[15mm] flex items-center justify-center box-border relative overflow-hidden">
+                <div className="parchment w-full h-full p-12 flex flex-col justify-between">
+                    {children}
+                </div>
+            </div>
+        );
 
-    <div className="flex-1 flex flex-col justify-center py-6 px-4 text-gray-800 leading-relaxed text-[14.5px] text-justify space-y-3">
-      <p>這個冥想，將幫助我們把自己穩穩地紮根在一道能量豐沛的光柱之中。當我們開始進入阿卡西紀錄的工作時，這道光柱會穩定並支撐我們。</p>
-      <p>現在，請找一個安靜的空間，為自己準備一張舒適的椅子。端正地坐下來，讓背脊自然挺直，雙腳平穩地踩在地板上。讓椅子承托你的重量，也支撐你的背部。去感受此刻你的身體，覺察身體所傳遞的感覺。</p>
-      <p>接著，將雙手輕輕相互接觸。開始從地心汲取能量，想像這股能量從地球的核心升起，經由你的腳底流入，向上流經你的雙腿、軀幹、脖子，最後進入你的頭顱，並溫柔地擴散在你的頭頂之上。</p>
-      <p>當你持續這樣連結雙手時，你可能會注意到這股能量已經往下流經你的雙臂並進入雙掌。現在，讓你的雙手感覺溫暖，用雙手清潔你的氣場，環繞著你的身體，刷拭你的能量場。清除你身上與周圍任何不屬於你的振動頻率，並將這些能量送回大地，由大地吸收並轉化。</p>
-      <p>完成之後，將雙手放在大腿上，或自然地放在椅子扶手上，手掌心向上。</p>
-      <p>現在，讓自己去覺知那無限力量與慈愛的光之源頭。它始終存在，盤旋在你頭頂上方大約十八英吋的地方。當你越加覺知這道光，它就會變得更加活躍，彷彿雨水般灑落在你的全身，流經你的前方、後方與兩側。這神聖的光，正在清洗並釋放任何干擾你體驗自身完整與美善的能量。</p>
-      <p>當光從頭部逐漸移動到腳趾時，它會在你的腳下匯聚，並為你建立起一座穩定而明亮的光之平台。這座平台不會限制你，而是溫柔地支撐並承載著你。</p>
-      <p>接著，這道光開始擴展成一個蛋形的能量場，從你身體四周向各個方向延伸，大約十八英吋的距離，涵蓋你的前方、後方與兩側。神聖的光溫柔地充滿這個空間，從光的平台向上流經你的腳踝、膝蓋、臀部、腹部、胸口、肩膀，並超越你的頭頂。於是，你坐在一道完整而穩定的光柱之中。</p>
-      <p>現在，花一點時間，讓光在你身上自然運作。依其天然的磁吸特性，光會從你之內吸走任何不再支持你的事物：身體的疼痛、壓力或苦惱；情緒上的動盪、憂慮或混亂；以及任何讓你感到恐懼或沮喪的思緒。光也會移除任何干擾你體驗內在平靜與永恆本質的能量。</p>
-      <p>你不需要告訴光該做什麼。光是無限的智慧，清楚知道此刻你真正需要的是什麼。只要讓它運行即可。</p>
-      <p>同時，光的輻射特性也會開始啟動。當光從各個角度穿越你皮膚的邊界進入你的內在時，它會完全轉化為你此刻所需要的品質。如果你需要的是勇氣，光就會成為你的勇氣；如果你需要的是安慰，光就會成為你的慈悲。以及此刻你所需要的一切。</p>
-      <p>現在，請敞開你的心，去觀察這道光。給它一點時間，允許它發生。此刻，你應該處於一個平衡而穩定的狀態，準備好繼續向前。請將你的注意力溫柔地帶回到此時此地，然後，繼續閱讀接下來的內容。</p>
-    </div>
+        // --- 主程式 ---
+        function App() {
+            const [name, setName] = useState('');
+            const [insight, setInsight] = useState('');
+            const [loading, setLoading] = useState(false);
 
-    <div className="text-center pt-4 border-t border-amber-200">
-      <p className="text-amber-800 font-bold tracking-widest text-lg">安住在光中，準備開啟紀錄</p>
-    </div>
-  </A4Page>
-);
+            // API 調用邏輯
+            const handleGetInsight = async () => {
+                setLoading(true);
+                try {
+                    // 這裡使用動態 import 確保環境變數能被讀取
+                    const { GoogleGenAI } = await import("https://esm.sh/@google/genai@1.35.0");
+                    const ai = new GoogleGenAI({ apiKey: window.process?.env?.API_KEY || "" });
+                    const response = await ai.models.generateContent({
+                        model: 'gemini-3-flash-preview',
+                        contents: `為姓名「${name || '光之子'}」提供一段 2 句的阿卡西紀錄啟發語。神聖、鼓勵性。使用繁體中文。`,
+                    });
+                    setInsight(response.text || "願紀錄的光芒照亮你的真實道路。");
+                } catch (err) {
+                    setInsight("安住在呼吸中，感受紀錄的愛。");
+                }
+                setLoading(false);
+            };
 
-// --- 組件 3: 祈禱文頁面 ---
-const PrayerPage: React.FC<{ isOpening: boolean; name: string }> = ({ isOpening, name }) => (
-  <A4Page>
-    <div className="text-center">
-      <div style={{ color: COLORS.gold }} className="text-xl mb-2">{isOpening ? "✧ ✦ ✧" : "✨ 🙏 ✨"}</div>
-      <h1 className="font-bold tracking-[10px] text-4xl mb-2 text-amber-900">{isOpening ? "開啟祈禱文" : "關閉祈禱文"}</h1>
-      <p className="text-amber-700/50 italic text-xs tracking-widest uppercase">{isOpening ? "Opening Prayer" : "Closing Prayer"}</p>
-    </div>
+            return (
+                <div className="min-h-screen">
+                    {/* 控制列 (列印時隱藏) */}
+                    <div className="no-print sticky top-0 z-50 bg-white/90 backdrop-blur shadow-md border-b border-amber-100">
+                        <div className="max-w-4xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl">🕯️</span>
+                                <h1 className="font-bold text-amber-900">阿卡西紀錄儀式素材</h1>
+                            </div>
+                            <div className="flex gap-2 w-full md:w-auto">
+                                <input
+                                    type="text"
+                                    placeholder="輸入姓名 (XXX)"
+                                    className="flex-1 md:w-48 px-4 py-2 rounded-lg border border-amber-200 outline-none focus:ring-2 focus:ring-amber-500"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                />
+                                <button onClick={() => window.print()} className="px-6 py-2 bg-amber-800 text-white rounded-lg font-bold shadow-lg active:scale-95 transition-all">
+                                    列印 A4
+                                </button>
+                            </div>
+                        </div>
+                        <div className="max-w-4xl mx-auto px-6 pb-4">
+                            <div className="bg-amber-50 rounded-xl p-3 flex items-center gap-3 border border-amber-100">
+                                <button onClick={handleGetInsight} disabled={loading} className="text-xs font-bold px-3 py-1 bg-white border border-amber-200 rounded">💫 紀錄導引</button>
+                                <p className="text-sm italic text-amber-900/70 truncate">{insight || "在此獲取個人化靈魂訊息..."}</p>
+                            </div>
+                        </div>
+                    </div>
 
-    <div className="flex-1 flex flex-col justify-center py-6">
-      {isOpening ? (
-        <div className="text-center space-y-5 text-[16px] leading-snug">
-          <div className="space-y-1">
-            <p className="font-bold text-xl text-amber-900">是的！我們認知並感謝光的力量</p>
-            <p>我請求指引、方向，和勇氣，去認出真理</p>
-            <p>祂為了我們最高的美善而揭露，也為了所有與我們連結的人的最高福祉</p>
-          </div>
-          <div className="space-y-1">
-            <p>噢！神聖的靈魂啊！請保護我遠離一切自以為是</p>
-            <p>請將我的注意力導向手邊的工作上</p>
-            <p>請幫助我在阿卡西紀錄的光中知曉我自己，請讓我透過紀錄領主之眼看見我自己</p>
-            <p>並讓我能夠分享我的大師、導師、和摯愛的人，所賜予我的智慧與慈悲</p>
-          </div>
-          <div className="bg-amber-100/40 py-5 border-y border-amber-200 rounded-sm">
-            <p>請讓我透過紀錄領主之眼看見 <span className="underline decoration-amber-600 font-bold px-2 text-2xl">{name || "XXX"}</span></p>
-            <p>讓我能夠分享 <span className="font-bold">{name || "XXX"}</span> 的大師、導師、和摯愛的人</p>
-            <p>所賜予（他或她）的智慧與慈悲</p>
-          </div>
-          <div className="space-y-1">
-            <p>請幫助我在阿卡西紀錄的光中知曉 <span className="underline decoration-amber-600 font-bold px-2 text-2xl">{name || "XXX"}</span></p>
-            <p>請讓我透過紀錄領主之眼看見 <span className="underline decoration-amber-600 font-bold px-2 text-2xl">{name || "XXX"}</span></p>
-            <p>讓我能夠分享 <span className="font-bold">{name || "XXX"}</span> 的大師、導師、和摯愛的人</p>
-            <p>所賜予（他或她）的智慧與慈悲</p>
-          </div>
-        </div>
-      ) : (
-        <div className="text-center space-y-12">
-          <p className="text-amber-800/60 italic mb-4">請平靜地唸出下面的祈請詞</p>
-          <div className="space-y-2">
-            <p className="font-bold text-2xl text-amber-900">我感謝大師們、導師們，以及我所摯愛的人，感謝祂們的愛和慈悲。</p>
-            <p className="text-gray-400 italic">I would like to thank the Masters, Teachers, and Loved Ones for their love and compassion.</p>
-          </div>
-          <div className="space-y-2">
-            <p className="font-bold text-2xl text-amber-900">我感謝阿卡西紀錄領主們，感謝祂們的觀點。</p>
-            <p className="text-gray-400 italic">I would like to thank the Lords of the Akashic Records for their point of view.</p>
-          </div>
-          <div className="space-y-2">
-            <p className="font-bold text-2xl text-amber-900">我感謝光的聖靈，感謝祂們所賜給我的知識和療癒。</p>
-            <p className="text-gray-400 italic">And I would like to thank the Holy Spirit of Light for all knowledge and healing.</p>
-          </div>
-        </div>
-      )}
-    </div>
+                    {/* 第一頁：聖光支柱冥想 */}
+                    <A4Page>
+                        <div className="text-center">
+                            <div className="text-amber-600 text-xl mb-1">✧ ✦ ✧</div>
+                            <h2 className="text-2xl font-bold tracking-[8px] text-amber-900">開場冥想：聖光支柱</h2>
+                            <p className="text-[10px] uppercase tracking-widest text-amber-600/50 italic">Pillar of Holy Light</p>
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center py-6 text-[14.5px] leading-relaxed text-gray-800 text-justify space-y-3">
+                            <p>這個冥想，將幫助我們把自己穩穩地紮根在一道能量豐沛的光柱之中。當我們開始進入阿卡西紀錄的工作時，這道光柱會穩定並支撐我們。</p>
+                            <p>現在，請找一個安靜的空間，為自己準備一張舒適的椅子。端正地坐下來，讓背脊自然挺直，雙腳平穩地踩在地板上。讓椅子承托你的重量，也支撐你的背部。去感受此刻你的身體，覺察身體所傳遞的感覺。</p>
+                            <p>接著，將雙手輕輕相互接觸。開始從地心汲取能量，想像這股能量從地球的核心升起，經由你的腳底流入，向上流經你的雙腿、軀幹、脖子，最後進入你的頭顱，並溫柔地擴散在你的頭頂之上。</p>
+                            <p>當你持續這樣連結雙手時，你可能會注意到這股能量已經往下流經你的雙臂並進入雙掌。現在，讓你的雙手感覺溫暖，用雙手清潔你的氣場，環繞著你的身體，刷拭你的能量場。清除你身上與周圍任何不屬於你的振動頻率，並將這些能量送回大地，由大地吸收並轉化。</p>
+                            <p>完成之後，將雙手放在大腿上，或自然地放在椅子扶手上，手掌心向上。現在，讓自己去覺知那無限力量與慈愛的光之源頭。它始終存在，盤旋在你頭頂上方大約十八英吋的地方。當你越加覺知這道光，它就會變得更加活躍，彷彿雨水般灑落在你的全身。</p>
+                            <p>這神聖的光，正在清洗並釋放任何干擾你體驗自身完整與美善的能量。當光從頭部逐漸移動到腳趾時，它會在你的腳下匯聚，並為你建立起一座穩定而明亮的光之平台。這座平台不會限制你，而是溫柔地支撐並承載著你。</p>
+                            <p>接著，這道光開始擴展成一個蛋形的能量場，從你身體四周向各個方向延伸，大約十八英吋的距離。神聖的光溫柔地充滿這個空間，向上流經你的全身，並超越你的頭頂。於是，你坐在一道完整而穩定的光柱之中。光是無限的智慧，清楚知道此刻你真正需要的是什麼。只要讓它運行即可。</p>
+                            <p>現在，請敞開你的心，去觀察這道光。給它一點時間，允許它發生。此刻，你應該處於一個平衡而穩定的狀態，準備好繼續向前。請將你的注意力溫柔地帶回到此時此地，然後，繼續閱讀接下來的內容。</p>
+                        </div>
+                        <div className="text-center border-t border-amber-200 pt-6">
+                            <p className="font-bold text-amber-800 tracking-widest">安住在光中，準備開啟紀錄</p>
+                        </div>
+                    </A4Page>
 
-    <div className="text-center border-t-2 border-amber-100 pt-8">
-      {isOpening ? (
-        <p className="text-3xl font-bold tracking-[8px] text-amber-900 uppercase">紀錄現在已開啟！</p>
-      ) : (
-        <div className="space-y-1 opacity-80">
-          <p className="text-2xl font-bold tracking-widest text-amber-900">紀錄現在已關閉，阿們。</p>
-          <p className="text-2xl font-bold tracking-widest text-amber-900/50">紀錄現在已關閉，阿們。</p>
-        </div>
-      )}
-    </div>
-  </A4Page>
-);
+                    {/* 第二頁：開啟祈禱文 */}
+                    <A4Page>
+                        <div className="text-center">
+                            <div className="text-amber-600 text-xl mb-1">✧ ✦ ✧</div>
+                            <h2 className="text-3xl font-bold tracking-[10px] text-amber-900">開啟祈禱文</h2>
+                            <p className="text-[10px] uppercase tracking-widest text-amber-600/50 italic">Opening Prayer</p>
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center py-6 text-center space-y-6 text-[16px]">
+                            <div className="space-y-1">
+                                <p className="font-bold text-xl text-amber-900">是的！我們認知並感謝光的力量</p>
+                                <p>我請求指引、方向，和勇氣，去認出真理</p>
+                                <p>祂為了我們最高的美善而揭露，也為了所有與我們連結的人的最高福祉</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p>噢！神聖的靈魂啊！請保護我遠離一切自以為是</p>
+                                <p>請幫助我在阿卡西紀錄的光中知曉我自己，請讓我透過紀錄領主之眼看見我自己</p>
+                                <p>並讓我能夠分享大師、導師、和摯愛的人，所賜予我的智慧與慈愛</p>
+                            </div>
+                            <div className="bg-amber-100/30 py-6 border-y border-amber-200 shadow-inner">
+                                <p>請讓我透過紀錄領主之眼看見 <span className="underline decoration-amber-600 font-bold px-2 text-2xl">{name || "XXX"}</span></p>
+                                <p>讓我能夠分享 <span className="font-bold">{name || "XXX"}</span> 的大師、導師、和摯愛的人</p>
+                                <p>所賜予（他或她）的智慧與慈悲</p>
+                            </div>
+                            <div className="space-y-1">
+                                <p>請幫助我在阿卡西紀錄的光中知曉 <span className="underline decoration-amber-600 font-bold px-2 text-2xl">{name || "XXX"}</span></p>
+                                <p>請讓我透過紀錄領主之眼看見 <span className="underline decoration-amber-600 font-bold px-2 text-2xl">{name || "XXX"}</span></p>
+                            </div>
+                        </div>
+                        <div className="text-center border-t border-amber-200 pt-6">
+                            <p className="text-3xl font-bold tracking-[10px] text-amber-900">紀錄現在已開啟！</p>
+                        </div>
+                    </A4Page>
 
-// --- 主應用程式 ---
-const App: React.FC = () => {
-  const [name, setName] = useState('');
-  const [insight, setInsight] = useState('');
-  const [loading, setLoading] = useState(false);
+                    {/* 第三頁：關閉祈禱文 */}
+                    <A4Page>
+                        <div className="text-center">
+                            <div className="text-amber-600 text-xl mb-1">✨ 🙏 ✨</div>
+                            <h2 className="text-3xl font-bold tracking-[10px] text-amber-900">關閉祈禱文</h2>
+                            <p className="text-[10px] uppercase tracking-widest text-amber-600/50 italic">Closing Prayer</p>
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center py-6 text-center space-y-12">
+                            <p className="text-amber-800/60 italic">請平靜地唸出下面的祈請詞</p>
+                            <div className="space-y-2">
+                                <p className="font-bold text-2xl text-amber-900">我感謝大師們、導師們，以及我所摯愛的人，感謝祂們的愛和慈悲。</p>
+                                <p className="text-gray-400 italic">I would like to thank the Masters, Teachers, and Loved Ones for their love and compassion.</p>
+                            </div>
+                            <div className="space-y-2">
+                                <p className="font-bold text-2xl text-amber-900">我感謝阿卡西紀錄領主們，感謝祂們的觀點。</p>
+                                <p className="text-gray-400 italic">I would like to thank the Lords of the Akashic Records for their point of view.</p>
+                            </div>
+                            <div className="space-y-2">
+                                <p className="font-bold text-2xl text-amber-900">我感謝光的聖靈，感謝祂們所賜給我的知識和療癒。</p>
+                                <p className="text-gray-400 italic">And I would like to thank the Holy Spirit of Light for all knowledge and healing.</p>
+                            </div>
+                        </div>
+                        <div className="text-center border-t border-amber-200 pt-6">
+                            <p className="text-2xl font-bold tracking-[6px] text-amber-900">紀錄現在已關閉，阿們。</p>
+                        </div>
+                    </A4Page>
+                </div>
+            );
+        }
 
-  const handleGetInsight = async () => {
-    setLoading(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `為姓名「${name || '光之子'}」提供一段 2 句的阿卡西紀錄啟發語。語氣神聖。`,
-      });
-      setInsight(response.text || "願紀錄的光引導你。");
-    } catch (e) {
-      setInsight("靜心感受當下的平安。");
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div className="min-h-screen">
-      {/* 導覽列：僅在螢幕顯示，列印時隱藏 */}
-      <div className="no-print sticky top-0 z-50 bg-white/95 backdrop-blur shadow-sm border-b border-amber-100">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center gap-4 justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🕯️</span>
-            <h1 className="font-bold text-amber-900">阿卡西紀錄祈禱文素材產生器</h1>
-          </div>
-          <div className="flex gap-2 w-full md:w-auto">
-            <input 
-              type="text" 
-              placeholder="輸入姓名" 
-              className="px-4 py-2 border rounded-lg flex-1 md:w-48 outline-none focus:ring-2 focus:ring-amber-500"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <button onClick={() => window.print()} className="px-6 py-2 bg-amber-800 text-white rounded-lg font-bold">列印 A4</button>
-          </div>
-        </div>
-        <div className="max-w-4xl mx-auto px-6 pb-4">
-          <div className="bg-amber-50 rounded-xl p-3 flex items-center gap-3 border border-amber-100">
-             <button onClick={handleGetInsight} disabled={loading} className="text-xs font-bold px-3 py-1 bg-white border border-amber-200 rounded">💫 靈魂啟發</button>
-             <p className="text-sm italic text-amber-900/70 truncate">{insight || "輸入姓名以獲取提示..."}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* 頁面內容 */}
-      <div className="flex flex-col items-center">
-        <MeditationPage />
-        <PrayerPage isOpening={true} name={name} />
-        <PrayerPage isOpening={false} name={name} />
-      </div>
-    </div>
-  );
-};
-
-ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
