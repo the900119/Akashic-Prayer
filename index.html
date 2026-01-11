@@ -1,50 +1,23 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>阿卡西紀錄祈禱文素材產生器</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <title>阿卡西紀錄祈禱文產生器</title>
     <style>
-        body {
-            font-family: 'Noto Serif TC', serif;
-            background-color: #f3f4f6;
-        }
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; padding: 0 !important; margin: 0 !important; }
-            .page { 
-                margin: 0 !important; 
-                border: none !important; 
-                box-shadow: none !important; 
-                width: 210mm; 
-                height: 297mm;
-                page-break-after: always;
-            }
-            @page {
-                size: A4;
-                margin: 0;
-            }
-        }
+        body { background-color: #f3f4f6; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
+        .page { background: white; width: 210mm; min-height: 297mm; padding: 20mm; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 12px double #d4af37; box-sizing: border-box; text-align: center; }
+        h1 { color: #8a6d3b; letter-spacing: 5px; margin-bottom: 30px; }
+        p { line-height: 1.8; text-align: justify; font-size: 18px; color: #333; }
+        .footer { margin-top: 50px; font-weight: bold; color: #8a6d3b; font-size: 24px; }
     </style>
-    <script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@19.0.0",
-    "react-dom": "https://esm.sh/react-dom@19.0.0",
-    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
-    "@google/genai": "https://esm.sh/@google/genai@1.35.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
-  }
-}
-</script>
 </head>
 <body>
-    <div id="root"></div>
-    <!-- 核心修正：必須明確指定入口檔案 -->
-    <script type="module" src="index.tsx"></script>
+    <div class="page">
+        <h1>阿卡西紀錄：開啟祈禱文</h1>
+        <p>是的！我們認知並感謝光的力量。我請求指引、方向，和勇氣，去認出真理，祂為了我們最高的美善而揭露，也為了所有與我們連結的人的最高福祉。</p>
+        <p>噢！神聖的靈魂啊！請保護我遠離一切自以為是，請將我的注意力導向手邊的工作上。請幫助我在阿卡西紀錄的光中知曉我自己，請讓我透過紀錄領主之眼看見我自己，並讓我能夠分享我的大師、導師、和摯愛的人，所賜予我的智慧與慈悲。</p>
+        <div class="footer">✨ 紀錄現在已開啟 ✨</div>
+    </div>
 </body>
 </html>
